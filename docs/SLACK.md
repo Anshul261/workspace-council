@@ -21,7 +21,8 @@ Kit callbacks, so do not enable Socket Mode for this managed integration.
 
 ## 2. Configure the worker
 
-Create `web/.env.local` from `web/.env.example` and set:
+Set the channel values in the repository-root `.env` alongside the existing
+OpenRouter, Exa, and Ambiguous credentials:
 
 ```env
 AGENT_URL=http://localhost:8000
@@ -30,11 +31,11 @@ CHANNEL_CODE=workspace-council
 CHANNEL_PORT=3001
 ```
 
-The worker command uses Node's `--env-file-if-exists=.env.local`, so these
-values are loaded by the standalone process rather than by Next.js.
+The worker command uses Node's `--env-file-if-exists=../.env`. `next.config.ts`
+loads the same root file for the server-side browser runtime.
 
 For a deployed service, protect AgentOS with a long random value in both the
-repository-root `.env` and `web/.env.local`:
+repository-root `.env`:
 
 ```env
 AGENT_AUTH_HEADER=Bearer <long-random-value>

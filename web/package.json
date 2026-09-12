@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --incremental false",
     "build:channels": "tsc -p tsconfig.channels.json",
-    "channels": "npm run build:channels && node --env-file-if-exists=.env.local .channels/channels/worker.js"
+    "channels": "npm run build:channels && node --env-file-if-exists=../.env .channels/channels/worker.js"
   },
   "dependencies": {
     "@ag-ui/client": "0.0.59",

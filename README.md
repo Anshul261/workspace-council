@@ -133,7 +133,7 @@ npm run channels
 ```
 
 Configure `INTELLIGENCE_API_KEY`, `CHANNEL_CODE`, `AGENT_URL`, and recommended Slack
-user allowlists in `web/.env.local`. Slack bot credentials stay in CopilotKit
+user allowlists in the repository-root `.env`. Slack bot credentials stay in CopilotKit
 Intelligence and are never exposed to Python or the browser. See
 [`docs/SLACK.md`](docs/SLACK.md) for setup and security boundaries.
 
