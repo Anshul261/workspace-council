@@ -16,3 +16,7 @@ def test_openrouter_uses_requested_deepseek_fallback_order() -> None:
     assert model.provider == "OpenRouter"
     assert model.id == "deepseek/deepseek-v4.1-flash"
     assert model.models == ["deepseek/deepseek-v4-flash-0731"]
+    assert model.max_tokens == 8192
+    assert model.reasoning_effort == "medium"
+    assert model.retries == 1
+    assert model.exponential_backoff is False

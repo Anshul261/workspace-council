@@ -5,6 +5,7 @@ from agno.os.interfaces.agui import AGUI
 from fastapi.responses import JSONResponse
 
 from workspace_council.config import Settings
+from workspace_council.history import recent_team_runs
 from workspace_council.team import build_team
 from workspace_council.workplace import (
     build_mail_tools,
@@ -55,6 +56,12 @@ async def healthz() -> JSONResponse:
             },
         },
     )
+
+
+@app.get("/historyz", include_in_schema=False)
+async def historyz(limit: int = 8) -> JSONResponse:
+    """Return sanitized top-level mission records without tools or reasoning."""
+    return JSONResponse(content={"runs": recent_team_runs(settings.db_file, limit)})
 
 
 if __name__ == "__main__":

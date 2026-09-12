@@ -52,11 +52,11 @@ const labelEmailSchema = z.object({
 
 const criticReviewSchema = z.object({
   verdict: z.enum(["APPROVED", "REVISE"]),
-  blocking_findings: z.array(z.string()),
-  material_findings: z.array(z.string()),
-  minor_findings: z.array(z.string()),
-  resolved_findings: z.array(z.string()),
-  required_revisions: z.array(z.string()),
+  blocking_findings: z.array(z.string()).optional(),
+  material_findings: z.array(z.string()).optional(),
+  minor_findings: z.array(z.string()).optional(),
+  resolved_findings: z.array(z.string()).optional(),
+  required_revisions: z.array(z.string()).optional(),
 });
 
 function shortResult(result: string | undefined) {
@@ -193,10 +193,12 @@ export function CouncilToolHost({ onCheckpoint }: ToolHostProps) {
     name: "record_critic_review",
     parameters: criticReviewSchema,
     render: ({ status, parameters }) => {
+      const blockingFindings = parameters.blocking_findings ?? [];
+      const materialFindings = parameters.material_findings ?? [];
       const approved =
         parameters.verdict === "APPROVED" &&
-        parameters.blocking_findings?.length === 0 &&
-        parameters.material_findings?.length === 0;
+        blockingFindings.length === 0 &&
+        materialFindings.length === 0;
       return (
         <article className={`generative-card critic-card ${approved ? "critic-approved" : "critic-revise"} generative-card-${status}`}>
           <CompletionSignal
@@ -207,8 +209,8 @@ export function CouncilToolHost({ onCheckpoint }: ToolHostProps) {
           />
           <p className="generative-label">Adversarial review / {approved ? "APPROVED" : "REVISE"}</p>
           <strong>{approved ? "Draft survived review" : "Revision required"}</strong>
-          <FindingList title="Blocking" items={parameters.blocking_findings} />
-          <FindingList title="Material" items={parameters.material_findings} />
+          <FindingList title="Blocking" items={blockingFindings} />
+          <FindingList title="Material" items={materialFindings} />
           <FindingList title="Minor" items={parameters.minor_findings} />
           <FindingList title="Resolved" items={parameters.resolved_findings} />
           <FindingList title="Revision todos" items={parameters.required_revisions} />

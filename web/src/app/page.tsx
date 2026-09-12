@@ -7,6 +7,7 @@ import {
 } from "@copilotkit/react-core/v2";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
+import { AppNavigation } from "./app-navigation";
 import { Checkpoint, CouncilStage, CouncilToolHost } from "./council-tools";
 
 const specialists = [
@@ -203,6 +204,8 @@ export default function Home() {
               <p className="brand-name">Workspace Council</p>
             </div>
           </div>
+
+          <AppNavigation />
 
           <ol className="specialists">
             {specialists.map((specialist) => (

@@ -11,8 +11,9 @@ def build_model(settings: Settings) -> OpenRouter:
         id=settings.openrouter_model,
         models=[settings.openrouter_fallback_model],
         api_key=settings.openrouter_api_key,
-        max_tokens=2048,
+        max_tokens=8192,
+        reasoning_effort="medium",
         temperature=0.2,
-        retries=2,
-        exponential_backoff=True,
+        retries=1,
+        exponential_backoff=False,
     )

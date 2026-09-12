@@ -20,20 +20,23 @@ from workspace_council.model import build_model
 @tool
 def record_critic_review(
     verdict: Literal["APPROVED", "REVISE"],
-    blocking_findings: list[str],
-    material_findings: list[str],
-    minor_findings: list[str],
-    resolved_findings: list[str],
-    required_revisions: list[str],
+    blocking_findings: list[str] | None = None,
+    material_findings: list[str] | None = None,
+    minor_findings: list[str] | None = None,
+    resolved_findings: list[str] | None = None,
+    required_revisions: list[str] | None = None,
 ) -> str:
     """Record the critic's structured verdict and revision todo list.
 
     Every finding must start with a stable ID such as C1. A verdict cannot be
     approved while blocking or material findings remain open.
     """
-    effective_verdict = (
-        "REVISE" if blocking_findings or material_findings else verdict
-    )
+    blocking_findings = blocking_findings or []
+    material_findings = material_findings or []
+    minor_findings = minor_findings or []
+    resolved_findings = resolved_findings or []
+    required_revisions = required_revisions or []
+    effective_verdict = "REVISE" if blocking_findings or material_findings else verdict
     return json.dumps(
         {
             "verdict": effective_verdict,
@@ -136,6 +139,7 @@ def build_team(
         tools=[record_critic_review],
         tool_call_limit=2,
         instructions=[
+            "Your first and mandatory output action is to call record_critic_review with the complete finding ledger.",
             "Act as an independent adversarial reviewer, not a collaborator seeking agreement.",
             "Assume the draft is wrong until its claims, decisions, and operating model survive challenge.",
             "Test claim-to-source traceability, hidden assumptions, omitted alternatives, security and governance gaps, cost realism, ownership, failure modes, rollback, and measurable success criteria.",
@@ -205,7 +209,7 @@ def build_team(
         model=model,
         db=database,
         members=members,
-        max_iterations=6,
+        max_iterations=12,
         instructions=[
             "Before drafting, determine whether a missing decision would materially change the answer.",
             "For a broad strategy request with an open platform choice, delegate one lightweight provider-neutral orientation to Web Researcher: exactly one search, no get_contents, at most three links and 200 words.",
@@ -220,19 +224,22 @@ def build_team(
             "If the critic verdict is REVISE, delegate the complete draft and complete finding ledger back to Editorial Writer.",
             "After revision, delegate the revised artifact and revision ledger back to Quality Critic for re-review.",
             "Repeat for at most two revision cycles. Track every finding ID as OPEN or RESOLVED.",
+            "Treat empty, visibly truncated, or structurally incomplete member output as a failed handoff, not completed work. Re-delegate only the missing bounded sections and preserve the last complete artifact.",
             "Never delegate publication unless the latest critic verdict is APPROVED.",
             "If approval is not achieved after two cycles, return preview-only with the remaining findings as explicit todos.",
             "Show the final draft, then delegate publication so the tool's enforced approval card can pause the write.",
             "Do not ask for a separate prose approval before invoking an approval-gated tool.",
             "Complete only after read-back verification, or mark the result preview-only.",
+            "Do not end the run while a requested artifact is incomplete or a critic ledger is missing. Return an explicit failure only after the bounded retry or two review cycles are exhausted.",
             "Include sources and the real Ambiguous record link when available.",
             "Delegate email lookup, draft creation, or labeling only to Mail Operator when available.",
             "Never claim an email was sent; this council can create drafts but has no send capability.",
             "Do not narrate routine planning. Keep the final response decision-focused and concise.",
         ],
         add_history_to_context=True,
-        num_history_runs=5,
-        add_team_history_to_members=True,
+        num_history_runs=2,
+        max_tool_calls_from_history=4,
+        add_team_history_to_members=False,
         share_member_interactions=True,
         enable_agentic_state=False,
         add_session_state_to_context=False,
