@@ -1757,12 +1757,23 @@ button:disabled {
   min-width: 0;
   gap: 0.5rem;
   padding: 0.9rem 1rem;
+  border: 0;
   border-right: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  transition: background 150ms ease, box-shadow 150ms ease;
 }
 
 .mission-record:nth-child(even) {
   border-right: 0;
+}
+
+.mission-record:hover,
+.mission-record.is-selected {
+  background: var(--paper-deep);
+  box-shadow: inset 3px 0 var(--accent);
 }
 
 .mission-record-meta {
@@ -1802,6 +1813,120 @@ button:disabled {
 .archive-status.status-completed { border-color: var(--success); color: var(--success); }
 .archive-status.status-paused { border-color: var(--warning); color: var(--warning); }
 .archive-status.status-cancelled { border-color: var(--danger); color: var(--danger); }
+
+.archive-error {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 0.68rem;
+}
+
+.after-action-report {
+  border-top: 2px solid var(--ink);
+  background: var(--paper);
+}
+
+.after-action-report > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.after-action-report h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+}
+
+.after-action-report header button {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.62rem;
+}
+
+.report-metrics {
+  display: flex;
+  gap: 1rem;
+  padding: 0.55rem 1rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font: 0.55rem ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+.report-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+}
+
+.report-columns > section {
+  min-width: 0;
+  padding: 1rem;
+}
+
+.report-columns > section + section {
+  border-left: 1px solid var(--rule);
+}
+
+.report-columns h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.mission-transcript,
+.specialist-report {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.transcript-entry,
+.specialist-report li {
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.transcript-entry > span {
+  color: var(--accent-dark);
+  font: 0.54rem ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+.transcript-entry.is-user > span {
+  color: var(--ink-soft);
+}
+
+.transcript-entry p,
+.specialist-report p {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.65rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.specialist-report li > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.specialist-report strong {
+  font-size: 0.68rem;
+}
 
 .transcript-dock-toggle {
   position: fixed;
@@ -2011,6 +2136,15 @@ button:disabled {
   .coordinator-brief > small {
     max-width: none;
     text-align: left;
+  }
+
+  .report-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .report-columns > section + section {
+    border-top: 1px solid var(--rule);
+    border-left: 0;
   }
 
   .agent-network {

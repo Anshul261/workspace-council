@@ -8,7 +8,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from workspace_council.config import Settings
-from workspace_council.history import recent_team_runs
+from workspace_council.history import recent_team_runs, team_run_detail
 from workspace_council.team import build_team
 from workspace_council.workplace import (
     build_mail_tools,
@@ -78,6 +78,15 @@ async def healthz() -> JSONResponse:
 async def historyz(limit: int = 8) -> JSONResponse:
     """Return sanitized top-level mission records without tools or reasoning."""
     return JSONResponse(content={"runs": recent_team_runs(settings.db_file, limit)})
+
+
+@app.get("/historyz/{run_id}", include_in_schema=False)
+async def history_detail(run_id: str) -> JSONResponse:
+    """Return the sanitized after-action report for one council run."""
+    detail = team_run_detail(settings.db_file, run_id)
+    if detail is None:
+        return JSONResponse(status_code=404, content={"detail": "Run not found"})
+    return JSONResponse(content=detail)
 
 
 if __name__ == "__main__":

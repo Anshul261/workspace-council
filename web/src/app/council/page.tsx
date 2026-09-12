@@ -66,6 +66,27 @@ type HistoryRun = {
   specialist_runs: number;
 };
 
+type HistoryDetail = {
+  run_id: string;
+  status: string;
+  created_at: number;
+  mission: string;
+  final_summary: string;
+  duration?: number;
+  conversation: Array<{
+    role: "user" | "assistant";
+    content: string;
+    created_at?: number;
+  }>;
+  specialists: Array<{
+    agent_id: string;
+    agent_name: string;
+    status: string;
+    created_at: number;
+    summary: string;
+  }>;
+};
+
 const agents: AgentDefinition[] = [
   {
     id: "workspace-reader",
@@ -288,6 +309,9 @@ export default function CouncilPage() {
   const [evidence, setEvidence] = useState<EvidenceItem[]>([]);
   const [coordinatorActivity, setCoordinatorActivity] = useState("Waiting for a mission brief.");
   const [history, setHistory] = useState<HistoryRun[]>([]);
+  const [selectedHistory, setSelectedHistory] = useState<HistoryDetail | null>(null);
+  const [historyLoading, setHistoryLoading] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [agentRuntime, setAgentRuntime] = useState<Record<string, Pick<AgentRuntime, "status" | "activity" | "lastInput" | "lastOutput">>>(
     () => Object.fromEntries(agents.map((agent) => [agent.id, { status: "idle", activity: "Awaiting a council run" }])),
   );
@@ -354,6 +378,23 @@ export default function CouncilPage() {
       if (response.ok) setHistory(body.runs ?? []);
     } catch {
       // Mission history is supporting context; live operation remains available.
+    }
+  }, []);
+
+  const openHistory = useCallback(async (runId: string) => {
+    setHistoryLoading(runId);
+    setHistoryError(null);
+    try {
+      const response = await fetch(`/api/history/${encodeURIComponent(runId)}`, { cache: "no-store" });
+      const body = (await response.json()) as HistoryDetail | { detail?: string };
+      if (!response.ok || !("run_id" in body)) {
+        throw new Error("detail" in body && body.detail ? body.detail : "Mission history unavailable");
+      }
+      setSelectedHistory(body);
+    } catch (error) {
+      setHistoryError(error instanceof Error ? error.message : "Mission history unavailable");
+    } finally {
+      setHistoryLoading(null);
     }
   }, []);
 
@@ -945,15 +986,23 @@ export default function CouncilPage() {
               </div>
               <div className="mission-archive">
                 {history.length ? history.map((run) => (
-                  <article className="mission-record" key={run.run_id}>
+                  <button
+                    aria-pressed={selectedHistory?.run_id === run.run_id}
+                    className={`mission-record ${selectedHistory?.run_id === run.run_id ? "is-selected" : ""}`}
+                    key={run.run_id}
+                    onClick={() => void openHistory(run.run_id)}
+                    type="button"
+                  >
                     <div className="mission-record-meta">
                       <time>{timeLabel(run.created_at * 1000)}</time>
                       <b className={`archive-status status-${run.status.toLowerCase()}`}>{run.status}</b>
                     </div>
                     <strong>{run.mission || "Council mission"}</strong>
                     <p>{run.summary || "No final receipt was persisted for this operation."}</p>
-                    <small>{run.specialist_runs} specialist runs · {durationLabel(run.duration)}</small>
-                  </article>
+                    <small>
+                      {historyLoading === run.run_id ? "Opening report..." : `${run.specialist_runs} specialist runs · ${durationLabel(run.duration)} · Open report`}
+                    </small>
+                  </button>
                 )) : (
                   <div className="panel-empty compact-empty">
                     <strong>No persisted missions yet</strong>
@@ -961,6 +1010,57 @@ export default function CouncilPage() {
                   </div>
                 )}
               </div>
+              {historyError ? <div className="archive-error" role="alert">{historyError}</div> : null}
+              {selectedHistory ? (
+                <section className="after-action-report" aria-labelledby="after-action-title">
+                  <header>
+                    <div>
+                      <p className="eyebrow">After-action report / {selectedHistory.status}</p>
+                      <h3 id="after-action-title">{selectedHistory.mission || "Council mission"}</h3>
+                    </div>
+                    <button type="button" onClick={() => setSelectedHistory(null)}>Close report</button>
+                  </header>
+                  <div className="report-metrics">
+                    <span>{timeLabel(selectedHistory.created_at * 1000)}</span>
+                    <span>{durationLabel(selectedHistory.duration)}</span>
+                    <span>{selectedHistory.specialists.length} specialist runs</span>
+                  </div>
+                  <div className="report-columns">
+                    <section aria-labelledby="conversation-title">
+                      <h4 id="conversation-title">Coordinator transcript</h4>
+                      <ol className="mission-transcript">
+                        {selectedHistory.conversation.length ? selectedHistory.conversation.map((entry, index) => (
+                          <li className={`transcript-entry is-${entry.role}`} key={`${entry.role}-${index}`}>
+                            <span>{entry.role === "user" ? "Operator" : "Council"}</span>
+                            <p>{entry.content}</p>
+                          </li>
+                        )) : (
+                          <li className="transcript-entry is-assistant">
+                            <span>Council receipt</span>
+                            <p>{selectedHistory.final_summary || "No coordinator transcript was persisted."}</p>
+                          </li>
+                        )}
+                      </ol>
+                    </section>
+                    <section aria-labelledby="specialist-report-title">
+                      <h4 id="specialist-report-title">Specialist handoffs</h4>
+                      <ol className="specialist-report">
+                        {selectedHistory.specialists.length ? selectedHistory.specialists.map((specialist) => (
+                          <li key={`${specialist.agent_id}-${specialist.created_at}`}>
+                            <div>
+                              <strong>{specialist.agent_name}</strong>
+                              <b className={`archive-status status-${specialist.status.toLowerCase()}`}>{specialist.status}</b>
+                            </div>
+                            <p>{specialist.summary || "Completed without a persisted text summary."}</p>
+                          </li>
+                        )) : (
+                          <li><p>No specialist delegation was required for this run.</p></li>
+                        )}
+                      </ol>
+                    </section>
+                  </div>
+                </section>
+              ) : null}
             </section>
           </div>
 
