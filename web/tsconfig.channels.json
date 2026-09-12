@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": false,
+    "declaration": false,
+    "rootDir": "src",
+    "outDir": ".channels",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@copilotkit/channels",
+    "types": ["node"]
+  },
+  "include": [
+    "src/agent.ts",
+    "src/channels/**/*.ts",
+    "src/channels/**/*.tsx"
+  ]
+}

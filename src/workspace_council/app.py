@@ -1,7 +1,10 @@
 """AgentOS application exposing the team through native AG-UI."""
 
+import hmac
+
 from agno.os import AgentOS
 from agno.os.interfaces.agui import AGUI
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from workspace_council.config import Settings
@@ -28,6 +31,19 @@ agent_os = AgentOS(
     interfaces=[AGUI(team=team)],
 )
 app = agent_os.get_app()
+
+
+@app.middleware("http")
+async def require_agent_auth(request: Request, call_next):
+    """Optionally restrict the AG-UI endpoint to the configured channel workers."""
+    if settings.agent_auth_header and request.url.path.startswith("/agui"):
+        authorization = request.headers.get("Authorization", "")
+        if not hmac.compare_digest(authorization, settings.agent_auth_header):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Unauthorized AG-UI request"},
+            )
+    return await call_next(request)
 
 
 @app.get("/healthz", include_in_schema=False)

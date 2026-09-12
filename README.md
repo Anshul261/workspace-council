@@ -120,6 +120,24 @@ Ambiguous retrieval, Exa evidence, and exact approval-gated document and mail pa
 The Mail Operator intentionally has no send tool. Its only mutations are creating a
 draft and adding labels to at most ten explicit email IDs, and both pause for approval.
 
+## Run the Slack channel
+
+The Slack worker is a persistent Node process that connects the same AG-UI council
+to a managed CopilotKit Intelligence Slack channel. It renders approval interrupts
+as native Block Kit buttons and resumes the exact paused run only after an allowed
+Slack user approves or rejects it.
+
+```bash
+cd web
+npm install
+npm run channels
+```
+
+Configure `INTELLIGENCE_API_KEY`, `CHANNEL_CODE`, and the worker's `AGENT_URL` in
+`web/.env.local`. Slack's Bot User OAuth token and Signing Secret belong in the
+CopilotKit Intelligence channel setup, not in this repository. See
+[`docs/SLACK.md`](docs/SLACK.md) for the exact setup and verification checklist.
+
 ## Architecture choice
 
 Agno remains the orchestration framework for this build:
