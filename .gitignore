@@ -1,0 +1,26 @@
+# Python-generated files
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+
+# Local AgentOS state
+.data/
+
+# Web build output
+web/node_modules/
+web/.next/
+web/.env.local
+web/tsconfig.tsbuildinfo
+
+# Local assistant context
+AGENTS.md
+CLAUDE.md
