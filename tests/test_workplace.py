@@ -2,12 +2,14 @@
 
 from workspace_council.config import Settings
 from workspace_council.workplace import (
+    CURATED_TOOL_SCHEMAS,
     DEMO_TOOL_NAMES,
     MAIL_ACTION_TOOL_NAMES,
     MAIL_TOOL_NAMES,
     PUBLISH_MUTATION_TOOL_NAMES,
     PUBLISH_TOOL_NAMES,
     READ_TOOL_NAMES,
+    WORKSPACE_MODULE_NAMES,
     build_demo_tools,
     build_mail_tools,
     build_publisher_tools,
@@ -62,3 +64,14 @@ def test_mail_actions_are_explicit_and_confirmation_gated() -> None:
     assert tools.include_tools == list(MAIL_TOOL_NAMES)
     assert tools.requires_confirmation_tools == list(MAIL_ACTION_TOOL_NAMES)
     assert "send_email" not in tools.include_tools
+
+
+def test_workspace_search_only_accepts_canonical_module_ids() -> None:
+    schema = CURATED_TOOL_SCHEMAS["search_workspace"]
+    modules = schema["properties"]["modules"]
+
+    assert schema["required"] == ["query", "limit"]
+    assert modules["items"]["enum"] == list(WORKSPACE_MODULE_NAMES)
+    assert "docs" in modules["items"]["enum"]
+    assert "doc" not in modules["items"]["enum"]
+    assert "documents" not in modules["items"]["enum"]

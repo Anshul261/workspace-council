@@ -17,6 +17,24 @@ MAIL_READ_TOOL_NAMES = ("search_mail", "get_email", "list_mail_labels")
 MAIL_ACTION_TOOL_NAMES = ("create_draft_email", "batch_modify_emails")
 MAIL_TOOL_NAMES = MAIL_READ_TOOL_NAMES + MAIL_ACTION_TOOL_NAMES
 DEMO_TOOL_NAMES = tuple(dict.fromkeys(READ_TOOL_NAMES + PUBLISH_MUTATION_TOOL_NAMES))
+WORKSPACE_MODULE_NAMES = (
+    "docs",
+    "sheets",
+    "slides",
+    "wiki",
+    "mail",
+    "chat",
+    "forms",
+    "sign",
+    "tasks",
+    "calendar",
+    "crm",
+    "drive",
+    "identity",
+    "assistant",
+    "admin",
+    "automations",
+)
 
 CURATED_TOOL_SCHEMAS: dict[str, dict[str, object]] = {
     "list_documents": {
@@ -38,10 +56,14 @@ CURATED_TOOL_SCHEMAS: dict[str, dict[str, object]] = {
         "type": "object",
         "properties": {
             "query": {"type": "string"},
-            "modules": {"type": "array", "items": {"type": "string"}},
+            "modules": {
+                "type": "array",
+                "items": {"type": "string", "enum": list(WORKSPACE_MODULE_NAMES)},
+                "uniqueItems": True,
+            },
             "limit": {"type": "integer", "minimum": 1, "maximum": 20},
         },
-        "required": ["query", "modules", "limit"],
+        "required": ["query", "limit"],
         "additionalProperties": False,
     },
     "create_document": {

@@ -5,7 +5,7 @@ import {
   UseAgentUpdate,
   useAgent,
 } from "@copilotkit/react-core/v2";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { Checkpoint, CouncilStage, CouncilToolHost } from "./council-tools";
 
@@ -19,7 +19,7 @@ const specialists = [
 ];
 
 const starters = [
-  "Read the latest project brief, research the market context, and draft a decision memo.",
+  "Create an enterprise cloud data platform memo. Start with a provider-neutral scan, then ask me for missing platform, scale, and compliance choices before drafting.",
   "Turn this workspace document into an executive update with risks, owners, and next actions.",
   "Research the claims in this document, critique the evidence, and propose a stronger version.",
 ];
@@ -27,7 +27,7 @@ const starters = [
 const contract: { key: Checkpoint; label: string }[] = [
   { key: "source", label: "Source record retrieved" },
   { key: "evidence", label: "Evidence URLs preserved" },
-  { key: "critic", label: "Critic verdict returned" },
+  { key: "critic", label: "Adversarial review approved" },
   { key: "approval", label: "Human approval captured" },
   { key: "published", label: "Published record read back" },
 ];
@@ -52,6 +52,7 @@ export default function Home() {
   const [activeSpecialist, setActiveSpecialist] = useState("Workspace Council");
   const [checkpoints, setCheckpoints] = useState(initialCheckpoints);
   const [missionSequence, setMissionSequence] = useState(0);
+  const stopRequested = useRef(false);
   const { agent, isReady } = useAgent({
     agentId: "default",
     updates: [
@@ -117,9 +118,6 @@ export default function Home() {
           setActiveSpecialist(specialist.name);
           setStageSummary(specialist.summary);
         }
-        if (eventName === "RunContentCompleted" && agentId === "quality-critic") {
-          setCheckpoints((current) => ({ ...current, critic: true }));
-        }
       },
     });
 
@@ -152,10 +150,11 @@ export default function Home() {
 
     if (!prompt || !isReady || health !== "ready" || agent.isRunning) return;
 
+    stopRequested.current = false;
     setError(null);
-    setActiveStage("retrieval");
-    setActiveSpecialist("Workspace Reader");
-    setStageSummary("Locating the requested workspace source.");
+    setActiveStage("planning");
+    setActiveSpecialist("Workspace Council");
+    setStageSummary("Assessing scope and deciding whether clarification is required.");
     setCheckpoints(initialCheckpoints);
     setMissionSequence((current) => current + 1);
     setSidebarOpen(true);
@@ -169,8 +168,18 @@ export default function Home() {
       await agent.runAgent();
       setMission("");
     } catch (runError) {
+      if (stopRequested.current) return;
       setError(runError instanceof Error ? runError.message : "The council run failed.");
     }
+  }
+
+  function stopMission() {
+    if (!agent.isRunning) return;
+    stopRequested.current = true;
+    agent.abortRun();
+    setActiveStage("cancelled");
+    setActiveSpecialist("Workspace Council");
+    setStageSummary("Run stopped by the user. Completed side effects are not undone.");
   }
 
   const runtimeReady = isReady && health === "ready";
@@ -237,7 +246,7 @@ export default function Home() {
               <p className="eyebrow">Research / write / review / approve / publish</p>
               <h1>Turn workspace context into finished work.</h1>
               <p className="hero-deck">
-                Five specialists share one brief. Every external claim keeps its source,
+                Six specialists share one brief. Every external claim keeps its source,
                 and every workspace write stops for your approval.
               </p>
             </div>
@@ -279,14 +288,21 @@ export default function Home() {
                   <p>
                     Publishing creates a new document only after an approval checkpoint.
                   </p>
-                  <button
-                    className="primary-action"
-                    type="submit"
-                    disabled={!mission.trim() || !runtimeReady || agent.isRunning}
-                  >
-                    {agent.isRunning ? "Council working" : "Start council run"}
-                    <span aria-hidden="true">↗</span>
-                  </button>
+                  {agent.isRunning ? (
+                    <button className="stop-action" type="button" onClick={stopMission}>
+                      Stop run
+                      <span aria-hidden="true">■</span>
+                    </button>
+                  ) : (
+                    <button
+                      className="primary-action"
+                      type="submit"
+                      disabled={!mission.trim() || !runtimeReady}
+                    >
+                      Start council run
+                      <span aria-hidden="true">↗</span>
+                    </button>
+                  )}
                 </div>
               </form>
 

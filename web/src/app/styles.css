@@ -397,6 +397,7 @@ button:disabled {
 }
 
 .primary-action,
+.stop-action,
 .transcript-action {
   display: inline-flex;
   min-height: 2.75rem;
@@ -413,6 +414,18 @@ button:disabled {
 
 .primary-action {
   padding: 0.75rem 1rem;
+}
+
+.stop-action {
+  padding: 0.75rem 1rem;
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fffaf4;
+}
+
+.stop-action:hover {
+  border-color: #7f2923;
+  background: #7f2923;
 }
 
 .primary-action:hover:not(:disabled),
@@ -638,12 +651,56 @@ button:disabled {
   background: var(--paper-deep);
 }
 
+.generative-card-error {
+  border-color: var(--danger);
+  background: #fff2ef;
+}
+
 .evidence-card {
   border-left-color: #537a6a;
 }
 
 .mail-card {
   border-left-color: #805d91;
+}
+
+.critic-card {
+  border-left-color: var(--warning);
+}
+
+.critic-approved {
+  border-left-color: var(--success);
+  background: #edf2ec;
+}
+
+.critic-revise {
+  background: #fff8ed;
+}
+
+.finding-group {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--rule);
+}
+
+.finding-group strong {
+  font: 0.61rem ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.finding-group ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.finding-group li {
+  color: var(--muted);
+  font-size: 0.69rem;
+  line-height: 1.45;
 }
 
 .approval-card {

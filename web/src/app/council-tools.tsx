@@ -10,13 +10,16 @@ import { z } from "zod";
 
 export type CouncilStage =
   | "idle"
+  | "planning"
+  | "clarification"
   | "retrieval"
   | "research"
   | "draft"
   | "review"
   | "approval"
   | "publish"
-  | "mail";
+  | "mail"
+  | "cancelled";
 
 export type Checkpoint =
   | "source"
@@ -47,9 +50,39 @@ const labelEmailSchema = z.object({
   add_labels: z.array(z.string()),
 });
 
+const criticReviewSchema = z.object({
+  verdict: z.enum(["APPROVED", "REVISE"]),
+  blocking_findings: z.array(z.string()),
+  material_findings: z.array(z.string()),
+  minor_findings: z.array(z.string()),
+  resolved_findings: z.array(z.string()),
+  required_revisions: z.array(z.string()),
+});
+
 function shortResult(result: string | undefined) {
   if (!result) return "Waiting for a verified result";
   return result.length > 280 ? `${result.slice(0, 277)}...` : result;
+}
+
+function isToolError(result: string | undefined) {
+  return Boolean(
+    result &&
+      (result.includes("Error from MCP tool") ||
+        result.includes("An error occurred while executing the tool") ||
+        result.startsWith("Error:")),
+  );
+}
+
+function FindingList({ title, items }: { title: string; items?: string[] }) {
+  if (!items?.length) return null;
+  return (
+    <div className="finding-group">
+      <strong>{title}</strong>
+      <ul>
+        {items.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
+  );
 }
 
 function CompletionSignal({
@@ -77,7 +110,12 @@ export function CouncilToolHost({ onCheckpoint }: ToolHostProps) {
     parameters: z.object({ id: z.string() }),
     render: ({ status, parameters, result }) => (
       <article className={`generative-card source-card generative-card-${status}`}>
-        <CompletionSignal status={status} checkpoint="source" onCheckpoint={onCheckpoint} />
+        <CompletionSignal
+          status={status}
+          checkpoint="source"
+          onCheckpoint={onCheckpoint}
+          enabled={!isToolError(result)}
+        />
         <CompletionSignal
           status={status}
           checkpoint="published"
@@ -97,7 +135,6 @@ export function CouncilToolHost({ onCheckpoint }: ToolHostProps) {
     parameters: z.object({ type: z.string(), limit: z.number() }),
     render: ({ status, parameters, result }) => (
       <article className={`generative-card source-card generative-card-${status}`}>
-        <CompletionSignal status={status} checkpoint="source" onCheckpoint={onCheckpoint} />
         <p className="generative-label">Ambiguous / document index</p>
         <strong>{status === "complete" ? "Candidate records found" : "Scanning workspace documents"}</strong>
         <small>{parameters.limit ?? 3} {parameters.type ?? "doc"} records requested</small>
@@ -110,15 +147,17 @@ export function CouncilToolHost({ onCheckpoint }: ToolHostProps) {
     name: "ambiguous_search_workspace",
     parameters: z.object({
       query: z.string(),
-      modules: z.array(z.string()),
+      modules: z.array(z.string()).optional(),
       limit: z.number(),
     }),
     render: ({ status, parameters, result }) => (
-      <article className={`generative-card source-card generative-card-${status}`}>
-        <CompletionSignal status={status} checkpoint="source" onCheckpoint={onCheckpoint} />
+      <article className={`generative-card source-card ${isToolError(result) ? "generative-card-error" : ""} generative-card-${status}`}>
         <p className="generative-label">Ambiguous / workspace search</p>
         <strong>{parameters.query ?? "Preparing workspace query"}</strong>
-        {status === "complete" ? <p>{shortResult(result)}</p> : <small>Searching permitted modules</small>}
+        <small>{parameters.modules?.join(", ") || "All workspace modules"}</small>
+        {status === "complete" ? (
+          <p>{isToolError(result) ? "Workspace search failed; the reader will use document listing and direct retrieval instead." : shortResult(result)}</p>
+        ) : <small>Searching permitted modules</small>}
       </article>
     ),
   });
@@ -148,6 +187,34 @@ export function CouncilToolHost({ onCheckpoint }: ToolHostProps) {
         {status === "complete" ? <p>{shortResult(result)}</p> : null}
       </article>
     ),
+  });
+
+  useRenderTool({
+    name: "record_critic_review",
+    parameters: criticReviewSchema,
+    render: ({ status, parameters }) => {
+      const approved =
+        parameters.verdict === "APPROVED" &&
+        parameters.blocking_findings?.length === 0 &&
+        parameters.material_findings?.length === 0;
+      return (
+        <article className={`generative-card critic-card ${approved ? "critic-approved" : "critic-revise"} generative-card-${status}`}>
+          <CompletionSignal
+            status={status}
+            checkpoint="critic"
+            onCheckpoint={onCheckpoint}
+            enabled={approved}
+          />
+          <p className="generative-label">Adversarial review / {approved ? "APPROVED" : "REVISE"}</p>
+          <strong>{approved ? "Draft survived review" : "Revision required"}</strong>
+          <FindingList title="Blocking" items={parameters.blocking_findings} />
+          <FindingList title="Material" items={parameters.material_findings} />
+          <FindingList title="Minor" items={parameters.minor_findings} />
+          <FindingList title="Resolved" items={parameters.resolved_findings} />
+          <FindingList title="Revision todos" items={parameters.required_revisions} />
+        </article>
+      );
+    },
   });
 
   useRenderTool({

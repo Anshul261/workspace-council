@@ -120,6 +120,28 @@ Ambiguous retrieval, Exa evidence, and exact approval-gated document and mail pa
 The Mail Operator intentionally has no send tool. Its only mutations are creating a
 draft and adding labels to at most ten explicit email IDs, and both pause for approval.
 
+The mission desk exposes `Stop run` while the council is active. Stopping cancels the
+current AG-UI run and prevents further delegation; it does not roll back a side effect
+that already completed.
+
+## Clarification and review
+
+Broad strategy requests do not immediately produce a generic artifact. The council can
+perform one provider-neutral Exa orientation search, then asks up to three blocking
+questions and ends the run. For an enterprise cloud data platform memo, those questions
+cover cloud-provider strategy, scale/latency, and regulatory or data-residency needs.
+
+The Quality Critic records an adversarial review with stable finding IDs, severities,
+resolved findings, and required revision todos. Any blocking or material finding forces
+`REVISE`; the writer must return a revision ledger and the critic must review again.
+Publication is forbidden until the latest structured verdict is `APPROVED`.
+
+Ambiguous workspace search uses the canonical application module IDs documented by the
+live MCP schema, such as `docs`, `sheets`, and `slides`. Human aliases such as `doc`,
+`sheet`, `documents`, or `channels` are not sent to the API. If workspace search fails,
+the reader performs one bounded fallback through document listing and direct retrieval
+instead of retrying broad searches.
+
 ## Architecture choice
 
 Agno remains the orchestration framework for this build:
