@@ -11,11 +11,13 @@ def test_loads_openrouter_and_exa_configuration(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setenv("AMBIGUOUS_API_KEY", "ambiguous-test")
     monkeypatch.delenv("OPENROUTER_MODEL", raising=False)
     monkeypatch.delenv("OPENROUTER_FALLBACK_MODEL", raising=False)
+    monkeypatch.setenv("AGENT_AUTH_HEADER", "Bearer test-agent-secret")
 
     settings = Settings.from_env()
 
     assert settings.openrouter_model == "deepseek/deepseek-v4.1-flash"
     assert settings.openrouter_fallback_model == "deepseek/deepseek-v4-flash-0731"
+    assert settings.agent_auth_header == "Bearer test-agent-secret"
     assert all(settings.readiness().values())
 
 

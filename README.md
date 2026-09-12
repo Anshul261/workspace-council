@@ -120,6 +120,23 @@ Ambiguous retrieval, Exa evidence, and exact approval-gated document and mail pa
 The Mail Operator intentionally has no send tool. Its only mutations are creating a
 draft and adding labels to at most ten explicit email IDs, and both pause for approval.
 
+## Slack channel
+
+The persistent CopilotKit Channels worker connects Slack threads to the same AG-UI
+Workspace Council used by the browser. It supports mention-triggered runs, serialized
+thread execution, visible tool status, and native approval cards for the three curated
+Ambiguous mutations.
+
+```bash
+cd web
+npm run channels
+```
+
+Configure `INTELLIGENCE_API_KEY`, `CHANNEL_CODE`, `AGENT_URL`, and recommended Slack
+user allowlists in `web/.env.local`. Slack bot credentials stay in CopilotKit
+Intelligence and are never exposed to Python or the browser. See
+[`docs/SLACK.md`](docs/SLACK.md) for setup and security boundaries.
+
 The mission desk exposes `Stop run` while the council is active. Stopping cancels the
 current AG-UI run and prevents further delegation; it does not roll back a side effect
 that already completed.

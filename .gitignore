@@ -20,6 +20,10 @@ web/node_modules/
 web/.next/
 web/.env.local
 web/tsconfig.tsbuildinfo
+web/.channels/
+
+# Local server and installer logs
+.run/
 
 # Local assistant context
 AGENTS.md

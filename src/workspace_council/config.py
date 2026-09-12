@@ -22,6 +22,7 @@ class Settings:
     ambiguous_mcp_url: str = "https://app.ambiguous.ai/mcp"
     db_file: str = ".data/workspace-council.db"
     debug: bool = False
+    agent_auth_header: str | None = None
 
     @classmethod
     def from_env(cls) -> Settings:
@@ -58,6 +59,7 @@ class Settings:
             ),
             db_file=os.getenv("AGNO_DB_FILE", ".data/workspace-council.db"),
             debug=os.getenv("AGNO_DEBUG", "false").lower() == "true",
+            agent_auth_header=os.getenv("AGENT_AUTH_HEADER") or None,
         )
 
     def readiness(self) -> dict[str, bool]:
